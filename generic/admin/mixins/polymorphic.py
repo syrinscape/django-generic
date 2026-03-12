@@ -109,7 +109,7 @@ class PolymorphicAdmin(admin.ModelAdmin):
 
     def get_model(self, request, obj=None):
         return obj.__class__ if obj else (
-            loading.get_model(
+            get_model(
                 self.opts.app_label,
                 request.REQUEST.get(self.subclass_parameter_name, '')
             )
