@@ -154,7 +154,7 @@ class BatchUpdateAdmin(admin.ModelAdmin):
                 'admin/generic/batch_update.html',
             )
         )
-        ids = request.REQUEST.get('ids', '').split(',')
+        ids = (request.POST.get('ids') or request.GET.get('ids') or '').split(',')
         queryset = self.get_queryset(request).filter(pk__in=ids)
         form_class = self.get_batch_update_form_class(request)
         form = form_class(request.POST or None)

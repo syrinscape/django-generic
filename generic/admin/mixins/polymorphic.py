@@ -111,7 +111,7 @@ class PolymorphicAdmin(admin.ModelAdmin):
         return obj.__class__ if obj else (
             get_model(
                 self.opts.app_label,
-                request.REQUEST.get(self.subclass_parameter_name, '')
+                request.POST.get(self.subclass_parameter_name) or request.GET.get(self.subclass_parameter_name, '')
             )
         )
 
