@@ -108,12 +108,13 @@ class PolymorphicAdmin(admin.ModelAdmin):
             return form_class
 
     def get_model(self, request, obj=None):
-        return obj.__class__ if obj else (
-            get_model(
-                self.opts.app_label,
-                request.POST.get(self.subclass_parameter_name) or request.GET.get(self.subclass_parameter_name, '')
-            )
+        if obj:
+            return obj.__class__
+        model_name = (
+            request.POST.get(self.subclass_parameter_name) or
+            request.GET.get(self.subclass_parameter_name, '')
         )
+        return get_model(self.opts.app_label, model_name) if model_name else None
 
     def get_modeladmin(self, request, obj=None):
         model = self.get_model(request, obj)
