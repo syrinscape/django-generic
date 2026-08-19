@@ -1,5 +1,6 @@
 import unittest
 
+import django
 from django import http
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
@@ -7,6 +8,7 @@ from django.conf.urls import include, patterns, url
 from django.test import TestCase
 from django.test.client import RequestFactory
 from . import decorators
+from .admin.mixins.batch import BatchUpdateAdmin
 from .admin.mixins.cooking import BaseCookedIdAdmin, CookedSingletonFix
 from .admin.mixins.polymorphic import PolymorphicAdmin
 from .mixins import Inheritable
@@ -87,6 +89,75 @@ class CookedIdAdminTests(unittest.TestCase):
         model_admin = CookedGroupAdmin(Group, admin.site)
 
         self.assertIn('/admin/auth/group/add/', unicode(model_admin.media))
+
+
+class BatchUpdateAdminTests(TestCase):
+    class GroupBatchUpdateAdmin(BatchUpdateAdmin):
+        batch_update_fields = ('name',)
+
+        def has_change_permission(self, request, obj=None):
+            return True
+
+    def assert_batch_context(self, response, admin_site, request):
+        self.assertTrue(admin_site.each_context_called)
+        self.assertTrue(response.context_data['from_each_context'])
+        self.assertEqual(response.context_data['count'], 0)
+        self.assertIs(response.context_data['model_meta'], Group._meta)
+        self.assertTrue(response.context_data['has_change_permission'])
+        self.assertIn('form', response.context_data)
+        self.assertIn('media', response.context_data)
+
+    @unittest.skipUnless(
+        django.VERSION >= (1, 8),
+        'Django 1.8 introduced request-aware AdminSite context',
+    )
+    def test_batch_update_passes_request_to_admin_site_context(self):
+        class ContextAdminSite(admin.AdminSite):
+            each_context_called = False
+
+            def each_context(self, request):
+                self.each_context_called = request is batch_request
+                return {
+                    'from_each_context': True,
+                    'count': 99,
+                }
+
+        batch_request = request_factory.get(
+            '/admin/auth/group/batch-update/',
+            {'ids': '999999'},
+        )
+        admin_site = ContextAdminSite(name='batch-context-test')
+        model_admin = self.GroupBatchUpdateAdmin(Group, admin_site)
+
+        response = model_admin.batch_update_view(batch_request)
+
+        self.assert_batch_context(response, admin_site, batch_request)
+
+    @unittest.skipUnless(
+        django.VERSION < (1, 8),
+        'Django 1.7 AdminSite context does not accept a request',
+    )
+    def test_batch_update_calls_legacy_admin_site_context_without_request(self):
+        class ContextAdminSite(admin.AdminSite):
+            each_context_called = False
+
+            def each_context(self):
+                self.each_context_called = True
+                return {
+                    'from_each_context': True,
+                    'count': 99,
+                }
+
+        batch_request = request_factory.get(
+            '/admin/auth/group/batch-update/',
+            {'ids': '999999'},
+        )
+        admin_site = ContextAdminSite(name='legacy-batch-context-test')
+        model_admin = self.GroupBatchUpdateAdmin(Group, admin_site)
+
+        response = model_admin.batch_update_view(batch_request)
+
+        self.assert_batch_context(response, admin_site, batch_request)
 
 
 class InheritableTests(unittest.TestCase):

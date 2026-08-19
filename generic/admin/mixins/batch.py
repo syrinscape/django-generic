@@ -1,3 +1,5 @@
+import django
+
 from django import forms
 from django import http
 try:
@@ -183,9 +185,11 @@ class BatchUpdateAdmin(admin.ModelAdmin):
             )
             return self.response_post_save_change(request, None)
 
-        return TemplateResponse(
-            request,
-            template_paths, {
+        if django.VERSION >= (1, 8):
+            context = self.admin_site.each_context(request)
+        else:
+            context = self.admin_site.each_context()
+        context.update({
                 'form': form,
                 'model_meta': self.model._meta,
                 'has_change_permission': self.has_change_permission(request),
@@ -197,7 +201,11 @@ class BatchUpdateAdmin(admin.ModelAdmin):
                     (), #self.get_readonly_fields(request),
                     model_admin=self
                 ).media,
-            },
+            })
+        return TemplateResponse(
+            request,
+            template_paths,
+            context,
             current_app=self.admin_site.name,
         )
 
