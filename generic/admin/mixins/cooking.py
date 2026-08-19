@@ -50,8 +50,8 @@ class BaseCookedIdAdmin:
         if hasattr(obj, 'get_absolute_url'):
             view_url = obj.get_absolute_url();
 
-        if request.user.has_perm('%s.change_%s' % (obj._meta.app_label, obj._meta.module_name)):
-            edit_url = reverse('admin:%s_%s_change' % (obj._meta.app_label,  obj._meta.module_name),  args=[obj.id])
+        if request.user.has_perm('%s.change_%s' % (obj._meta.app_label, obj._meta.model_name)):
+            edit_url = reverse('admin:%s_%s_change' % (obj._meta.app_label,  obj._meta.model_name),  args=[obj.id])
 
         result = {'text': unicode(obj),
                   'view_url': view_url,
@@ -269,7 +269,7 @@ class CookedSingletonFix(object):
         # using './' doesn't work, but instead of faking a PK, the add
         # URL should be a cleaner approach
         base_url = reverse('admin:%s_%s_add' % (
-            self.model._meta.app_label, self.model._meta.module_name)
+            self.model._meta.app_label, self.model._meta.model_name)
         )
         extra_script = '<script type="text/javascript">'\
             'window.cooked_id_url_base="%s";</script>' % base_url
