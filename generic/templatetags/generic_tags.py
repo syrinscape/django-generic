@@ -1,4 +1,5 @@
 import re
+from html.entities import name2codepoint
 
 from django import forms
 from django import template
@@ -77,14 +78,13 @@ def htmlparser_unescape(s):
                     c = int(s[1:], 16)
                 else:
                     c = int(s)
-                return unichr(c)
+                return chr(c)
         except ValueError:
             return '&#'+s+';'
         else:
-            import htmlentitydefs
-            entitydefs = {'apos':u"'"}
-            for k, v in htmlentitydefs.name2codepoint.iteritems():
-                entitydefs[k] = unichr(v)
+            entitydefs = {'apos': "'"}
+            for k, v in name2codepoint.items():
+                entitydefs[k] = chr(v)
             try:
                 return entitydefs[s]
             except KeyError:
@@ -176,7 +176,7 @@ class SplitListNode(Node):
 
     def split_seq(self, list, cols=2):
         start = 0
-        for i in xrange(cols):
+        for i in range(cols):
             stop = start + len(list[i::cols])
             yield list[start:stop]
             start = stop
@@ -263,7 +263,7 @@ def do_update_GET(parser, token):
 def _chunks(l, n):
     """ Yield successive n-sized chunks from l.
     """
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i+n]
 
 
@@ -295,32 +295,41 @@ class UpdateGetNode(template.Node):
                 else:
                     actual_val = val.var
 
+            is_multiple = (
+                hasattr(actual_val, '__iter__')
+                and not isinstance(actual_val, (str, bytes))
+            )
+            multiple_values = list(actual_val) if is_multiple else None
+
             if actual_attr:
                 if op == "=":
                     if actual_val is None or actual_val == []:
-                        if GET.has_key(actual_attr):
+                        if actual_attr in GET:
                             del GET[actual_attr]
-                    elif hasattr(actual_val, '__iter__'):
-                        GET.setlist(actual_attr, actual_val)
+                    elif is_multiple:
+                        GET.setlist(actual_attr, multiple_values)
                     else:
-                        GET[actual_attr] = unicode(actual_val)
+                        GET[actual_attr] = force_text(actual_val)
                 elif op == "+=":
                     if actual_val is None or actual_val == []:
-                        if GET.has_key(actual_attr):
+                        if actual_attr in GET:
                             del GET[actual_attr]
-                    elif hasattr(actual_val, '__iter__'):
-                        GET.setlist(actual_attr, GET.getlist(actual_attr) + list(actual_val))
+                    elif is_multiple:
+                        GET.setlist(
+                            actual_attr,
+                            GET.getlist(actual_attr) + multiple_values,
+                        )
                     else:
-                        GET.appendlist(actual_attr, unicode(actual_val))
+                        GET.appendlist(actual_attr, force_text(actual_val))
                 elif op == "-=":
                     li = GET.getlist(actual_attr)
-                    if hasattr(actual_val, '__iter__'):
-                        for v in list(actual_val):
+                    if is_multiple:
+                        for v in multiple_values:
                             if v in li:
                                 li.remove(v)
                         GET.setlist(actual_attr, li)
                     else:
-                        actual_val = unicode(actual_val)
+                        actual_val = force_text(actual_val)
                         if actual_val in li:
                             li.remove(actual_val)
                         GET.setlist(actual_attr, li)
@@ -430,8 +439,8 @@ def _admin_link(tag_name, link_type, context, **kwargs):
     # TODO: i18n
     link_text = kwargs.pop('link_text').replace(
         '<verbose_name>',
-        unicode(model._meta.verbose_name)
-    ).replace('<instance_unicode>', unicode(instance))
+        str(model._meta.verbose_name)
+    ).replace('<instance_unicode>', str(instance))
 
     querystring_dict = QueryDict('', mutable=True)
     if return_url:

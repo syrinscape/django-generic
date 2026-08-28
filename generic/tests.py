@@ -7,6 +7,7 @@ from django.contrib.auth.models import Group, User
 from django.conf.urls import include, patterns, url
 from django.test import TestCase
 from django.test.client import RequestFactory
+from django.utils.encoding import force_text
 from . import decorators
 from .admin.mixins.batch import BatchUpdateAdmin
 from .admin.mixins.cooking import BaseCookedIdAdmin, CookedSingletonFix
@@ -29,13 +30,13 @@ class GenericTest(TestCase):
         request = request_factory.get('/')
         response = return_dict(request)
         self.assertEqual(response['Content-Type'], 'application/json')
-        self.assertEqual(response.content, '{"test": 123}')
+        self.assertEqual(response.content, b'{"test": 123}')
 
     def test_json_view_with_http_response(self):
         request = request_factory.get('/')
         response = return_http_response(request)
         self.assertTrue('text/html' in response['Content-Type'])
-        self.assertEqual(response.content, 'test')
+        self.assertEqual(response.content, b'test')
 
 
 class PolymorphicAdminTests(unittest.TestCase):
@@ -88,7 +89,7 @@ class CookedIdAdminTests(unittest.TestCase):
 
         model_admin = CookedGroupAdmin(Group, admin.site)
 
-        self.assertIn('/admin/auth/group/add/', unicode(model_admin.media))
+        self.assertIn('/admin/auth/group/add/', force_text(model_admin.media))
 
 
 class BatchUpdateAdminTests(TestCase):

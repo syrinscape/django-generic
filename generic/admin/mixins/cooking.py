@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Media, MEDIA_TYPES
 from django.core.urlresolvers import reverse
+from django.utils.encoding import force_text
 from ..widgets import (
     ForeignKeyCookedIdWidget,
     ManyToManyCookedIdWidget,
@@ -53,7 +54,7 @@ class BaseCookedIdAdmin:
         if request.user.has_perm('%s.change_%s' % (obj._meta.app_label, obj._meta.model_name)):
             edit_url = reverse('admin:%s_%s_change' % (obj._meta.app_label,  obj._meta.model_name),  args=[obj.id])
 
-        result = {'text': unicode(obj),
+        result = {'text': force_text(obj),
                   'view_url': view_url,
                   'edit_url': edit_url
                   }

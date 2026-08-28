@@ -31,15 +31,9 @@ class Python3GrammarTests(SimpleTestCase):
             ),
         ]
 
-        from generic.templatetags import generic_tags
-
-        generic_tags.xrange = range
-        try:
-            for source, message in cases:
-                with self.assertRaisesMessage(TemplateSyntaxError, message):
-                    Template(source)
-        finally:
-            del generic_tags.xrange
+        for source, message in cases:
+            with self.assertRaisesMessage(TemplateSyntaxError, message):
+                Template(source)
 
     def test_decorators_module_imports(self):
         from generic import decorators
