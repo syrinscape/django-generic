@@ -51,9 +51,9 @@ class View(django.views.generic.View):
             response = super(View, self).dispatch(request, *args, **kwargs)
         except PermissionDenied as forbidden_exception:
             response = http.HttpResponseForbidden(
-                forbidden_exception.message or 'Permission denied')
+                str(forbidden_exception) or 'Permission denied')
         except RedirectInstead as redirect_exception:
-            response = redirect(redirect_exception.message)
+            response = redirect(str(redirect_exception))
         return self.finalize_response(response)
 
     def get_context_data(self, **kwargs):
