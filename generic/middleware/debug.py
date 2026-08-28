@@ -1,9 +1,8 @@
-import sys
-import os
+import cProfile
+from io import StringIO
+import pstats
 import re
-import hotshot, hotshot.stats
-import tempfile
-import StringIO
+import sys
 
 from django.conf import settings
 
@@ -46,8 +45,7 @@ class ProfileMiddleware(object):
 
     def process_request(self, request):
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
-            self.tmpfile = tempfile.mktemp()
-            self.prof = hotshot.Profile(self.tmpfile)
+            self.prof = cProfile.Profile()
 
     def process_view(self, request, callback, callback_args, callback_kwargs):
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
@@ -101,26 +99,18 @@ class ProfileMiddleware(object):
 
     def process_response(self, request, response):
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
-            self.prof.close()
-
-            out = StringIO.StringIO()
-            old_stdout = sys.stdout
-            sys.stdout = out
-
-            stats = hotshot.stats.load(self.tmpfile)
+            out = StringIO()
+            stats = pstats.Stats(self.prof, stream=out)
             stats.sort_stats('time', 'calls')
             stats.print_stats()
-
-            sys.stdout = old_stdout
             stats_str = out.getvalue()
 
-            if response and response.content and stats_str:
-                response.content = "<pre>" + stats_str + "</pre>"
-
-            response.content = "\n".join(response.content.split("\n")[:40])
-
-            response.content += self.summary_for_files(stats_str)
-
-            os.unlink(self.tmpfile)
+            if response.content and stats_str:
+                content = "<pre>" + stats_str + "</pre>"
+            else:
+                content = response.content.decode(response.charset)
+            content = "\n".join(content.split("\n")[:40])
+            content += self.summary_for_files(stats_str)
+            response.content = content
 
         return response
