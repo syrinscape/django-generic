@@ -43,8 +43,6 @@ class Python3GrammarTests(SimpleTestCase):
     def test_testing_helper_can_ignore_redirect_query_strings(self):
         from generic.utils import testing
 
-        testing.unicode = str
-
         class RedirectTestCase(testing.TestCase):
             def runTest(self):
                 pass
@@ -52,20 +50,17 @@ class Python3GrammarTests(SimpleTestCase):
         helper = RedirectTestCase()
         response = http.HttpResponseRedirect("/target/?page=2")
 
-        try:
-            with mock.patch.object(
-                django.test.TestCase,
-                "assertRedirects",
-                side_effect=AssertionError(
-                    "Response redirected to '/target/?page=2', "
-                    "expected '/target/'"
-                ),
-            ):
-                helper.assertRedirects(
-                    response,
-                    "/target/",
-                    ignore_querystring=True,
-                    fetch_redirect_response=False,
-                )
-        finally:
-            del testing.unicode
+        with mock.patch.object(
+            django.test.TestCase,
+            "assertRedirects",
+            side_effect=AssertionError(
+                "Response redirected to '/target/?page=2', "
+                "expected '/target/'"
+            ),
+        ):
+            helper.assertRedirects(
+                response,
+                "/target/",
+                ignore_querystring=True,
+                fetch_redirect_response=False,
+            )
