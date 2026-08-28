@@ -13,16 +13,16 @@ class Inheritable(object):
                     pass
         return self
 
-    def __unicode__(self):
-        # Display the unicode representation of the leaf model instance
+    def __str__(self):
+        # Display the text representation of the leaf model instance
         leaf = self.get_leaf_object()
         if leaf.__class__ != self.__class__:
-            return "%s: %s" % (leaf._meta.verbose_name, unicode(leaf))
-        # Simulate what Django does in Model.__str__, so that when no
-        # __unicode__ method is defined on the model, this mixin doesn't
-        # affect the unicode representation
-        if hasattr(super(Inheritable, self), '__unicode__'):
-            return super(Inheritable, self).__unicode__()
+            return "%s: %s" % (leaf._meta.verbose_name, str(leaf))
+        # Simulate Django's default model text unless a later class in the
+        # method resolution order defines its own Python 3 text contract.
+        parent_str = getattr(super(Inheritable, self), '__str__', None)
+        if getattr(parent_str, '__func__', object.__str__) is not object.__str__:
+            return parent_str()
         return '%s object' % self.__class__.__name__
 
 

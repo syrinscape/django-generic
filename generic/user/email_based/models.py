@@ -62,7 +62,7 @@ class EmailBasedUser(AbstractBaseUser, PermissionsMixin):
         abstract = True
         ordering = ('last_name', 'first_name', 'email',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.get_full_name()
 
     def get_full_name(self):
