@@ -64,13 +64,13 @@ class PolymorphicAdmin(admin.ModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         if self.subclass_parameter_name in request.POST:
-            import urllib
+            from urllib.parse import urlencode
             return http.HttpResponseRedirect(
                 '?%s=%s' % (
                     self.subclass_parameter_name,
                     request.POST.get(self.subclass_parameter_name),
                 )
-                + '&' + urllib.urlencode(request.GET.items())
+                + '&' + urlencode(list(request.GET.items()))
             )
         return super(PolymorphicAdmin, self).add_view(
             request, form_url=form_url, extra_context=extra_context)

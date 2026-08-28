@@ -30,7 +30,7 @@ from django.template.defaultfilters import stringfilter
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 register = template.Library()
 
@@ -165,9 +165,9 @@ def split_list(parser, token):
     """Parse template tag: {% split_list list as new_list 2 %}"""
     bits = token.contents.split()
     if len(bits) != 5:
-        raise TemplateSyntaxError, "split_list list as new_list 2"
+        raise TemplateSyntaxError("split_list list as new_list 2")
     if bits[2] != 'as':
-        raise TemplateSyntaxError, "second argument to the split_list tag must be 'as'"
+        raise TemplateSyntaxError("second argument to the split_list tag must be 'as'")
     return SplitListNode(bits[1], bits[4], bits[3])
 
 class SplitListNode(Node):
@@ -250,10 +250,10 @@ def do_update_GET(parser, token):
         args = token.split_contents()[1:]
         triples = list(_chunks(args, 3))
         if triples and len(triples[-1]) != 3:
-            raise template.TemplateSyntaxError, "%r tag requires arguments in groups of three (op, attr, value)." % token.contents.split()[0]
+            raise template.TemplateSyntaxError("%r tag requires arguments in groups of three (op, attr, value)." % token.contents.split()[0])
         ops = set([t[1] for t in triples])
         if not ops <= set(['+=', '-=', '=']):
-            raise template.TemplateSyntaxError, "The only allowed operators are '+=', '-=' and '='. You have used %s" % ", ".join(ops)
+            raise template.TemplateSyntaxError("The only allowed operators are '+=', '-=' and '='. You have used %s" % ", ".join(ops))
 
     except ValueError:
         return UpdateGetNode()

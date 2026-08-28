@@ -1,12 +1,13 @@
 # from http://docs.python.org/library/csv.html#csv-examples
 
 import csv
-import cStringIO
 import codecs
+import io
+
 
 class UTF8Recoder:
     """
-    Iterator that reads an encoded stream and reencodes the input to UTF-8
+    Iterator that reads and decodes an encoded byte stream.
     """
     def __init__(self, f, encoding):
         self.reader = codecs.getreader(encoding)(f)
@@ -14,8 +15,9 @@ class UTF8Recoder:
     def __iter__(self):
         return self
 
-    def next(self):
-        return self.reader.next().encode("utf-8")
+    def __next__(self):
+        return next(self.reader)
+
 
 class Reader:
     """
@@ -27,9 +29,8 @@ class Reader:
         f = UTF8Recoder(f, encoding)
         self.reader = csv.reader(f, dialect=dialect, **kwds)
 
-    def next(self):
-        row = self.reader.next()
-        return [unicode(s, "utf-8") for s in row]
+    def __next__(self):
+        return next(self.reader)
 
     def __iter__(self):
         return self
@@ -42,37 +43,31 @@ class Writer:
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
+        self.queue = io.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
         def stringify(value):
-            if isinstance(value, unicode):
-                pass
-            elif isinstance(value, basestring):
+            if isinstance(value, bytes):
                 value = value.decode('utf-8')
             elif hasattr(value, '__unicode__'):
-                value = unicode(value)
-            elif hasattr(value, '__str__'):
-                value = str(value).decode('utf-8')
-            else:
-                raise NotImplementedError
-            return value.encode('utf-8')
+                value = value.__unicode__()
+            elif not isinstance(value, str):
+                value = str(value)
+            return value
         self.writer.writerow(map(stringify, row))
-        # Fetch UTF-8 output from the queue ...
+        # Fetch text output from the queue ...
         data = self.queue.getvalue()
-        data = data.decode("utf-8")
         # ... and reencode it into the target encoding
         data = self.encoder.encode(data)
         # write to the target stream
         self.stream.write(data)
         # empty queue
         self.queue.truncate(0)
+        self.queue.seek(0)
 
     def writerows(self, rows):
         for row in rows:
             self.writerow(row)
-
-

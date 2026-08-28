@@ -64,7 +64,7 @@ class BaseCookedIdAdmin:
         if not field_name in self.cooked_id_fields:
             raise http.Http404
         try:
-            ids = map(int, raw_ids.split(','))
+            ids = list(map(int, raw_ids.split(',')))
         except ValueError:
             if raw_ids == '':
                 ids = []

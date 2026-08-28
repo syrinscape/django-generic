@@ -40,7 +40,7 @@ class SSLRedirect:
             request.get_full_path()
         )
         if settings.DEBUG and request.method == 'POST':
-            raise RuntimeError, (
+            raise RuntimeError(
                 "Django can't perform a SSL redirect while maintaining POST "
                 "data. Please structure your views so that redirects only "
                 "occur during GETs."

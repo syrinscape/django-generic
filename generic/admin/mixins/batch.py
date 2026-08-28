@@ -24,7 +24,7 @@ class BatchUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         from django.forms.forms import BoundField
         super(BatchUpdateForm, self).__init__(*args, **kwargs)
-        for field_name in self.fields.keys():
+        for field_name in list(self.fields.keys()):
 
             model_field = self._meta.model._meta.get_field(field_name)
             if isinstance(model_field, models.ManyToManyField):
@@ -145,7 +145,7 @@ class BatchUpdateAdmin(admin.ModelAdmin):
         )
 
     def batch_update_view(self, request):
-        template_paths = map(
+        template_paths = list(map(
             lambda path: path % {
                 'app_label': self.model._meta.app_label,
                 'model_name': self.model._meta.model_name,
@@ -155,7 +155,7 @@ class BatchUpdateAdmin(admin.ModelAdmin):
                 'admin/batch_update.html',
                 'admin/generic/batch_update.html',
             )
-        )
+        ))
         ids = (request.POST.get('ids') or request.GET.get('ids') or '').split(',')
         queryset = self.get_queryset(request).filter(pk__in=ids)
         form_class = self.get_batch_update_form_class(request)

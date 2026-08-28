@@ -31,7 +31,7 @@ TEMPLATE_CONTEXT_PROCESSORS.add('django.core.context_processors.request')
 
 def get_hash(string, length=8):
     """ Shortcut for generating short hash strings """
-    return hashlib.sha1(string).hexdigest()[:length]
+    return hashlib.sha1(string.encode("utf-8")).hexdigest()[:length]
 
 def reloaded(obj):
     """ Reload an object from the database """
@@ -100,7 +100,7 @@ class TestCase(django.test.TestCase):
         try:
             super(TestCase, self).assertRedirects(
                 response, expected_url, *args, **kwargs)
-        except AssertionError, e:
+        except AssertionError as e:
             if ignore_querystring and re.match(
                     r"Response redirected to '(.*){0}\?.*', "
                     r"expected '\1{0}'".format(expected_url),
@@ -272,7 +272,7 @@ class _VerboseAssertNumQueriesContext(_AssertNumQueriesContext):
         try:
             super(_VerboseAssertNumQueriesContext, self).__exit__(
                 exc_type, exc_value, traceback)
-        except AssertionError, e:
+        except AssertionError as e:
             start = getattr(
                 self, 'initial_queries', getattr(self, 'starting_queries', 0)
             )
@@ -314,7 +314,7 @@ class SeleniumTests(LiveServerTestCase):
                 )
             )
         if mail.outbox and 'Internal Server Error' in mail.outbox[-1].subject:
-            print mail.outbox[-1].body
+            print(mail.outbox[-1].body)
         super(SeleniumTests, self).tearDown()
 
     def get(self, url, *args, **kwargs):
@@ -363,5 +363,5 @@ class SeleniumTests(LiveServerTestCase):
         return self.driver.current_url.replace(self.live_server_url, '', 1)
 
     def print_text(self, container_tag='body'):
-        print self.driver.find_element_by_tag_name(container_tag).text
+        print(self.driver.find_element_by_tag_name(container_tag).text)
 

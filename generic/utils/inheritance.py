@@ -1,3 +1,4 @@
+from functools import reduce
 from operator import add
 
 def _get_subclasses(klass):
