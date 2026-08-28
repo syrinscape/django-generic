@@ -45,11 +45,12 @@ def _http_auth_helper(request):
     if exemption_callable and exemption_callable(request):
         return None
 
-    if request.META.has_key('HTTP_AUTHORIZATION'):
+    if 'HTTP_AUTHORIZATION' in request.META:
         auth = request.META['HTTP_AUTHORIZATION'].split()
         if len(auth) == 2:
             if auth[0].lower() == 'basic':
-                username, password = base64.b64decode(auth[1]).split(':')
+                credentials = base64.b64decode(auth[1]).decode('utf-8')
+                username, password = credentials.split(':')
                 auth_function = getattr(
                     settings, 'HTTP_AUTH_FUNCTION', default_auth_function)
                 if auth_function(request, username, password):
