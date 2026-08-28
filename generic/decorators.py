@@ -33,11 +33,11 @@ def cache_method(cache_name=None):
             )
             for value in args:
                 if isinstance(value, (list, tuple)):
-                    value = ','.join(map(unicode, value))
+                    value = ','.join(map(str, value))
                 cache_key += '-%s' % value
-            for key, value in kwargs.iteritems():
+            for key, value in kwargs.items():
                 if isinstance(value, (list, tuple)):
-                    value = ','.join(map(unicode, value))
+                    value = ','.join(map(str, value))
                 cache_key += '-%s=%s' % (key, value)
             debug_info = [cache_key]
 
@@ -62,7 +62,7 @@ def cache_method(cache_name=None):
                     debug_info.append('hit')
             debug_info.append(result)
             if getattr(settings, 'GENERIC_CACHE_METHOD_DEBUG', False):
-                logger.debug(u' -- '.join(map(unicode, debug_info)))
+                logger.debug(' -- '.join(map(str, debug_info)))
             return result
         return wrapped_method
     return inner
