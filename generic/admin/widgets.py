@@ -34,7 +34,7 @@ class TabularInlineForeignKeyCookedIdWidget(ForeignKeyCookedIdWidget):
         output = output.replace(
             'CookedIdField', 'TabularInlineCookedIdField')
 
-        return output
+        return mark_safe(output)
 
 
 class TabularInlineManyToManyCookedIdWidget(TabularInlineForeignKeyCookedIdWidget,
@@ -50,7 +50,7 @@ class StackedInlineForeignKeyCookedIdWidget(ForeignKeyCookedIdWidget):
         output = output.replace(
             'CookedIdField', 'StackedInlineCookedIdField')
 
-        return output
+        return mark_safe(output)
 
 
 class StackedInlineManyToManyCookedIdWidget(StackedInlineForeignKeyCookedIdWidget,
