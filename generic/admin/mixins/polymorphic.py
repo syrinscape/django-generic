@@ -158,10 +158,14 @@ class PolymorphicAdmin(admin.ModelAdmin):
         for the parent model, since its URL will be matched first.
         """
         urls = super(PolymorphicAdmin, self).get_urls(*args, **kwargs)
+        change_name = '%s_%s_change' % (self.opts.app_label, self.opts.model_name)
+        change_pattern = next(
+            pattern.regex.pattern for pattern in urls if pattern.name == change_name
+        )
         for subclass in get_subclasses(self.model):
             info = subclass._meta.app_label, subclass._meta.model_name
             urls += patterns('',
-                url(r'^(.+)/$',
+                url(change_pattern,
                     lambda *a, **k: None, # This never gets called
                     name='%s_%s_change' % info),
             )
