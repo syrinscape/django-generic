@@ -8,10 +8,10 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 
 try:
-    from django.contrib.sites.models import get_current_site
-except ImportError:
-    # Django 1.9
     from django.contrib.sites.shortcuts import get_current_site
+except ImportError:
+    # Django before 1.7
+    from django.contrib.sites.models import get_current_site
 
 try:
     from django.apps import apps
